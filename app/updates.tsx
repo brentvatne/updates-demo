@@ -28,16 +28,10 @@ export default function UpdatesScreen() {
   function setChannelOverride(name: string) {
     setSelectedChannel(name);
     try {
-      if ((Updates as any).setUpdateRequestHeaders) {
-        (Updates as any).setUpdateRequestHeaders({
-          "expo-channel-name": name,
-        });
-        setStatus(`Channel set to ${name}.`);
-      } else {
-        setStatus(
-          "Channel override not supported in this build (missing setUpdateRequestHeaders).",
-        );
-      }
+      Updates.setUpdateRequestHeadersOverride({
+        "expo-channel-name": name,
+      });
+      setStatus(`Channel set to ${name}.`);
     } catch (e: any) {
       const message = e?.message ?? String(e);
       setStatus(message);
@@ -49,12 +43,8 @@ export default function UpdatesScreen() {
     setIsChecking(true);
     setStatus("Checking for updates…");
     try {
-      if ((Updates as any).setUpdateRequestHeaders) {
-        (Updates as any).setUpdateRequestHeaders({
-          "expo-channel-name": selectedChannel,
-        });
-      }
       const result = await Updates.checkForUpdateAsync();
+      alert(JSON.stringify(result));
       if (result?.isAvailable) {
         setStatus("Downloading update… 0%");
         let subscription: any;
@@ -122,7 +112,9 @@ export default function UpdatesScreen() {
             />
             <Text>Revision</Text>
             <Spacer />
-            <Text color="secondary">{revisionId ?? "Unknown"}</Text>
+            <Text color="secondary" size={12} lineLimit={1}>
+              {revisionId ?? "Unknown"}
+            </Text>
           </HStack>
 
           <HStack spacing={8}>
@@ -172,25 +164,23 @@ export default function UpdatesScreen() {
             <Text color="secondary">{runtimeVersion ?? "Unknown"}</Text>
           </HStack>
 
-          {status ? (
-            <HStack spacing={8}>
-              <Image
-                systemName="info.circle"
-                color="white"
-                size={18}
-                modifiers={[
-                  frame({ width: 28, height: 28 }),
-                  background("#808080"),
-                  clipShape("roundedRectangle"),
-                ]}
-              />
-              <Text>Status</Text>
-              <Spacer />
-              <Text color="secondary" size={12}>
-                {status}
-              </Text>
-            </HStack>
-          ) : null}
+          <HStack spacing={8}>
+            <Image
+              systemName="info.circle"
+              color="white"
+              size={18}
+              modifiers={[
+                frame({ width: 28, height: 28 }),
+                background("#808080"),
+                clipShape("roundedRectangle"),
+              ]}
+            />
+            <Text>Status</Text>
+            <Spacer />
+            <Text color="secondary" size={12}>
+              {status ?? "-"}
+            </Text>
+          </HStack>
         </Section>
 
         <Section>

@@ -39,18 +39,11 @@
             "backgroundColor": "#000000"
           }
         }
-      ],
-      "expo-sqlite"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    },
-    "buildCacheProvider": {
-      "plugin": "expo-build-disk-cache",
-      "options": {
-        "cacheDir": ".expo/build-cache"
-      }
     },
     "extra": {
       "router": {},

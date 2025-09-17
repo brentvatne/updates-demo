@@ -23,7 +23,9 @@ export default function UpdatesScreen() {
   const channels = ["main", "livestream", "secret"];
   const [availableUpdate, setAvailableUpdate] = useState<any | null>(null);
   const [isDownloaded, setIsDownloaded] = useState(false);
-  const { isDownloading, downloadProgress } = Updates.useUpdates();
+  const { isDownloading, downloadProgress, isUpdatePending } =
+    Updates.useUpdates();
+  const canApply = isDownloaded || isUpdatePending;
 
   const revisionId = Updates.updateId ?? null;
   const runtimeVersion = Updates.runtimeVersion ?? null;
@@ -89,7 +91,9 @@ export default function UpdatesScreen() {
       setStatus("Reloading…");
       await Updates.reloadAsync({
         reloadScreenOptions: {
-          image: require("../assets/images/livestream.png"),
+          backgroundColor: "#e6f4fd",
+          image: require("../assets/images/reload-icon.png"),
+          imageResizeMode: "center",
           fade: true,
         },
       });
@@ -239,53 +243,48 @@ export default function UpdatesScreen() {
             </HStack>
           </Button>
 
-          {isDownloaded ? (
-            <>
-              <Button onPress={reloadWithSpinner} disabled={isChecking}>
-                <HStack spacing={8}>
-                  <Image
-                    systemName="arrow.triangle.2.circlepath"
-                    color="white"
-                    size={18}
-                    modifiers={[
-                      frame({ width: 28, height: 28 }),
-                      background("#007aff"),
-                      clipShape("roundedRectangle"),
-                    ]}
-                  />
-                  <Text color="primary">Reload (spinner)</Text>
-                  <Spacer />
-                  <Image
-                    systemName="chevron.right"
-                    size={14}
-                    color="secondary"
-                  />
-                </HStack>
-              </Button>
+          <Button
+            onPress={reloadWithSpinner}
+            disabled={isChecking || !canApply}
+          >
+            <HStack spacing={8}>
+              <Image
+                systemName="arrow.triangle.2.circlepath"
+                color="white"
+                size={18}
+                modifiers={[
+                  frame({ width: 28, height: 28 }),
+                  background(canApply ? "#007aff" : "#808080"),
+                  clipShape("roundedRectangle"),
+                ]}
+              />
+              <Text color={canApply ? "primary" : "secondary"}>
+                Reload (spinner)
+              </Text>
+              <Spacer />
+              <Image systemName="chevron.right" size={14} color="secondary" />
+            </HStack>
+          </Button>
 
-              <Button onPress={reloadWithImage} disabled={isChecking}>
-                <HStack spacing={8}>
-                  <Image
-                    systemName="photo"
-                    color="white"
-                    size={18}
-                    modifiers={[
-                      frame({ width: 28, height: 28 }),
-                      background("#34c759"),
-                      clipShape("roundedRectangle"),
-                    ]}
-                  />
-                  <Text color="primary">Reload (image)</Text>
-                  <Spacer />
-                  <Image
-                    systemName="chevron.right"
-                    size={14}
-                    color="secondary"
-                  />
-                </HStack>
-              </Button>
-            </>
-          ) : null}
+          <Button onPress={reloadWithImage} disabled={isChecking || !canApply}>
+            <HStack spacing={8}>
+              <Image
+                systemName="photo"
+                color="white"
+                size={18}
+                modifiers={[
+                  frame({ width: 28, height: 28 }),
+                  background(canApply ? "#34c759" : "#808080"),
+                  clipShape("roundedRectangle"),
+                ]}
+              />
+              <Text color={canApply ? "primary" : "secondary"}>
+                Reload (image)
+              </Text>
+              <Spacer />
+              <Image systemName="chevron.right" size={14} color="secondary" />
+            </HStack>
+          </Button>
         </Section>
       </Form>
     </Host>

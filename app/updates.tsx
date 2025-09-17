@@ -77,7 +77,7 @@ export default function UpdatesScreen() {
       await Updates.reloadAsync({
         reloadScreenOptions: {
           backgroundColor: "#ffffff",
-          spinner: { enabled: true, size: "medium", color: "#007aff" },
+          spinner: { enabled: true, size: "medium", color: "#000" },
           fade: true,
         },
       });

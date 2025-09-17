@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.brents.hello-updates"
     },
     "android": {
       "adaptiveIcon": {
@@ -38,11 +39,31 @@
             "backgroundColor": "#000000"
           }
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "buildCacheProvider": {
+      "plugin": "expo-build-disk-cache",
+      "options": {
+        "cacheDir": ".expo/build-cache"
+      }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "d4c1db57-6687-40ac-ba37-6f989ef21971"
+      }
+    },
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/d4c1db57-6687-40ac-ba37-6f989ef21971",
+      "requestHeaders": {
+        "expo-channel-name": "main"
+      }
     }
   }
 }

@@ -11,16 +11,19 @@ import {
 } from "@expo/ui/swift-ui";
 import { background, clipShape, frame } from "@expo/ui/swift-ui/modifiers";
 import * as Updates from "expo-updates";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert } from "react-native";
 
 export default function UpdatesScreen() {
   const [isChecking, setIsChecking] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
   const [selectedChannel, setSelectedChannel] = useState<string>(
-    ((Updates as any).channel as string) ?? "main",
+    Updates.channel ?? "main",
   );
   const channels = ["main", "livestream", "secret"];
+  const [availableUpdate, setAvailableUpdate] = useState<any | null>(null);
+  const [isDownloaded, setIsDownloaded] = useState(false);
+  const { isDownloading, downloadProgress } = Updates.useUpdates();
 
   const revisionId = Updates.updateId ?? null;
   const runtimeVersion = Updates.runtimeVersion ?? null;
@@ -44,45 +47,16 @@ export default function UpdatesScreen() {
     setStatus("Checking for updates…");
     try {
       const result = await Updates.checkForUpdateAsync();
-      alert(JSON.stringify(result));
       if (result?.isAvailable) {
+        setAvailableUpdate(result);
         setStatus("Downloading update… 0%");
-        let subscription: any;
-        try {
-          if ((Updates as any).addListener) {
-            subscription = (Updates as any).addListener((event: any) => {
-              const type = event?.type ?? event?.eventType;
-              const DOWNLOAD_PROGRESS =
-                (Updates as any).UpdateEventType?.DOWNLOAD_PROGRESS ??
-                "DOWNLOAD_PROGRESS";
-              if (type === DOWNLOAD_PROGRESS) {
-                const written =
-                  event?.totalBytesWritten ?? event?.downloadedBytes ?? 0;
-                const total =
-                  event?.totalBytesExpectedToWrite ?? event?.totalBytes ?? 0;
-                if (total > 0) {
-                  const pct = Math.max(
-                    0,
-                    Math.min(100, Math.floor((written / total) * 100)),
-                  );
-                  setStatus(`Downloading update… ${pct}%`);
-                } else {
-                  setStatus(`Downloading update… ${written} bytes`);
-                }
-              }
-            });
-          }
-
-          if ((Updates as any).downloadUpdateAsync) {
-            await (Updates as any).downloadUpdateAsync();
-          } else if ((Updates as any).fetchUpdateAsync) {
-            await (Updates as any).fetchUpdateAsync();
-          }
-        } finally {
-          if (subscription?.remove) subscription.remove();
+        const fetchResult = await Updates.fetchUpdateAsync();
+        if (fetchResult?.isNew) {
+          setIsDownloaded(true);
+          setStatus("Update ready to apply.");
+        } else {
+          setStatus("No new update downloaded.");
         }
-        setStatus("Applying update…");
-        await Updates.reloadAsync();
       } else {
         setStatus("You're up to date.");
       }
@@ -94,6 +68,45 @@ export default function UpdatesScreen() {
       setIsChecking(false);
     }
   }
+
+  async function reloadWithSpinner() {
+    try {
+      setStatus("Reloading…");
+      await Updates.reloadAsync({
+        reloadScreenOptions: {
+          backgroundColor: "#ffffff",
+          spinner: { enabled: true, size: "medium", color: "#007aff" },
+          fade: true,
+        },
+      });
+    } catch (e: any) {
+      setStatus(e?.message ?? String(e));
+    }
+  }
+
+  async function reloadWithImage() {
+    try {
+      setStatus("Reloading…");
+      await Updates.reloadAsync({
+        reloadScreenOptions: {
+          image: require("../assets/images/livestream.png"),
+          fade: true,
+        },
+      });
+    } catch (e: any) {
+      setStatus(e?.message ?? String(e));
+    }
+  }
+
+  useEffect(() => {
+    if (isDownloading && typeof downloadProgress === "number") {
+      const pct = Math.max(
+        0,
+        Math.min(100, Math.floor(downloadProgress * 100)),
+      );
+      setStatus(`Downloading update… ${pct}%`);
+    }
+  }, [isDownloading, downloadProgress]);
 
   return (
     <Host style={{ flex: 1 }}>
@@ -147,6 +160,28 @@ export default function UpdatesScreen() {
               }}
             />
           </HStack>
+
+          {availableUpdate ? (
+            <HStack spacing={8}>
+              <Image
+                systemName="arrow.down.circle"
+                color="white"
+                size={18}
+                modifiers={[
+                  frame({ width: 28, height: 28 }),
+                  background("#808080"),
+                  clipShape("roundedRectangle"),
+                ]}
+              />
+              <Text>Available Update</Text>
+              <Spacer />
+              <Text color="secondary" size={12} lineLimit={1}>
+                {(availableUpdate as any)?.manifest?.runtimeVersion ??
+                  (availableUpdate as any)?.runtimeVersion ??
+                  "Ready"}
+              </Text>
+            </HStack>
+          ) : null}
 
           <HStack spacing={8}>
             <Image
@@ -203,6 +238,54 @@ export default function UpdatesScreen() {
               <Image systemName="chevron.right" size={14} color="secondary" />
             </HStack>
           </Button>
+
+          {isDownloaded ? (
+            <>
+              <Button onPress={reloadWithSpinner} disabled={isChecking}>
+                <HStack spacing={8}>
+                  <Image
+                    systemName="arrow.triangle.2.circlepath"
+                    color="white"
+                    size={18}
+                    modifiers={[
+                      frame({ width: 28, height: 28 }),
+                      background("#007aff"),
+                      clipShape("roundedRectangle"),
+                    ]}
+                  />
+                  <Text color="primary">Reload (spinner)</Text>
+                  <Spacer />
+                  <Image
+                    systemName="chevron.right"
+                    size={14}
+                    color="secondary"
+                  />
+                </HStack>
+              </Button>
+
+              <Button onPress={reloadWithImage} disabled={isChecking}>
+                <HStack spacing={8}>
+                  <Image
+                    systemName="photo"
+                    color="white"
+                    size={18}
+                    modifiers={[
+                      frame({ width: 28, height: 28 }),
+                      background("#34c759"),
+                      clipShape("roundedRectangle"),
+                    ]}
+                  />
+                  <Text color="primary">Reload (image)</Text>
+                  <Spacer />
+                  <Image
+                    systemName="chevron.right"
+                    size={14}
+                    color="secondary"
+                  />
+                </HStack>
+              </Button>
+            </>
+          ) : null}
         </Section>
       </Form>
     </Host>

@@ -5,10 +5,7 @@ export default function RootLayout() {
     <Stack
       screenOptions={{ headerBlurEffect: "light", headerTransparent: true }}
     >
-      <Stack.Screen
-        name="index"
-        options={{ title: "Updates Demo (LiveStream!)" }}
-      />
+      <Stack.Screen name="index" options={{ title: "Updates Demo" }} />
       <Stack.Screen name="glass" options={{ title: "Glass" }} />
       <Stack.Screen
         name="glass-container"

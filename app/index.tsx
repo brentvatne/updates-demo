@@ -12,13 +12,13 @@ import {
 import { background, clipShape, frame } from "@expo/ui/swift-ui/modifiers";
 import { Image as ExpoImage } from "expo-image";
 import { Link } from "expo-router";
-import Storage from "expo-sqlite/kv-store";
+import 'expo-sqlite/localStorage/install';
 import { useEffect, useState } from "react";
 import { ScrollView } from "react-native";
 
 export default function IndexScreen() {
   const [isLiveStreamMode, setIsLiveStreamMode] = useState(
-    Storage.getItemSync("isLiveStreamMode") === "true",
+    localStorage.getItem("isLiveStreamMode") === "true",
   );
 
   useEffect(() => {
@@ -28,7 +28,7 @@ export default function IndexScreen() {
     //   }, 1000);
     // }
 
-    Storage.setItem("isLiveStreamMode", isLiveStreamMode.toString());
+    localStorage.setItem("isLiveStreamMode", isLiveStreamMode.toString());
   }, [isLiveStreamMode]);
 
   return (
